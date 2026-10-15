@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "title": "三棱锥 P-ABC",
+  "modelType": "convex_polyhedron",
+  "vertices": [
+    { "id": "A", "label": "A", "position": [0, 0, 0] },
+    { "id": "B", "label": "B", "position": [4, 0, 0] },
+    { "id": "C", "label": "C", "position": [0, 3, 0] },
+    { "id": "P", "label": "P", "position": [0, 0, 4] }
+  ],
+  "edges": [
+    { "from": "A", "to": "B" },
+    { "from": "B", "to": "C" },
+    { "from": "C", "to": "A" },
+    { "from": "P", "to": "A" },
+    { "from": "P", "to": "B" },
+    { "from": "P", "to": "C" }
+  ],
+  "faces": [
+    { "id": "ABC", "label": "底面 ABC", "vertices": ["A", "C", "B"] },
+    { "id": "PAB", "label": "侧面 PAB", "vertices": ["A", "B", "P"] },
+    { "id": "PBC", "label": "侧面 PBC", "vertices": ["B", "C", "P"] },
+    { "id": "PCA", "label": "侧面 PCA", "vertices": ["C", "A", "P"] }
+  ],
+  "auxiliarySegments": [],
+  "conditions": [
+    { "text": "PA 垂直于平面 ABC", "source": "题干", "confidence": "high" },
+    { "text": "底面 ABC 位于 z = 0 平面", "source": "模型设定", "confidence": "high" }
+  ],
+  "uncertainties": [],
+  "initialView": "isometric",
+  "defaultSectionPlane": { "normal": [0, 0, 1], "offset": 2 }
+}

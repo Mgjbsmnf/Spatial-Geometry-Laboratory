@@ -1,0 +1,1341 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f5f7fb" />
+  <title>空间几何实验室 · 动点探索版</title>
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --panel: #ffffff;
+      --panel-soft: #f8faff;
+      --line: #e3e8f1;
+      --text: #18243a;
+      --muted: #71809a;
+      --blue: #4169e1;
+      --blue-dark: #2547ac;
+      --blue-soft: #edf2ff;
+      --teal: #0d9488;
+      --orange: #e89b28;
+      --danger: #c2414b;
+      --shadow: 0 8px 28px rgba(29, 48, 83, .055);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--text); background: var(--bg); min-height: 100vh; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .app-header { height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 26px; background: rgba(255,255,255,.92); border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark { height: 40px; width: 40px; display: grid; place-items: center; border-radius: 13px; color: #fff; background: linear-gradient(145deg, #537cf2, #3154c9); box-shadow: 0 5px 12px rgba(65,105,225,.22); flex: 0 0 auto; }
+    .brand-mark svg { width: 24px; height: 24px; }
+    .brand-copy { min-width: 0; }
+    .brand-title { font-size: 16px; font-weight: 760; letter-spacing: -.3px; }
+    .brand-subtitle { font-size: 11px; margin-top: 3px; color: var(--muted); }
+    .header-actions { display: flex; align-items: center; gap: 9px; }
+    .header-note { font-size: 12px; color: var(--muted); margin-right: 6px; }
+    .btn { border: 1px solid #dbe2ee; background: #fff; color: #30415e; border-radius: 10px; padding: 9px 12px; font-size: 12px; font-weight: 650; display: inline-flex; justify-content: center; align-items: center; gap: 7px; transition: .15s ease; white-space: nowrap; }
+    .btn:hover { border-color: #aabbea; background: #f8faff; transform: translateY(-1px); }
+    .btn:focus-visible, .seg-btn:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(65,105,225,.22); outline-offset: 1px; }
+    .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn.primary:hover { background: var(--blue-dark); }
+    .btn.ghost { background: transparent; }
+    .btn.danger-soft { color: var(--danger); }
+    .btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+    .workspace { max-width: 1740px; margin: 0 auto; padding: 18px; display: grid; grid-template-columns: minmax(285px, 330px) minmax(410px, 1fr) minmax(260px, 295px); gap: 16px; align-items: stretch; min-height: calc(100vh - 70px); }
+    .panel { border: 1px solid var(--line); border-radius: 16px; background: var(--panel); box-shadow: var(--shadow); overflow: hidden; min-width: 0; }
+    .panel-head { padding: 17px 17px 13px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .panel-title { font-size: 14px; font-weight: 760; letter-spacing: -.2px; }
+    .panel-subtitle { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.55; }
+    .section-label { font-size: 11px; color: #61718c; text-transform: uppercase; letter-spacing: .7px; font-weight: 750; }
+    .editor-panel { display: flex; flex-direction: column; }
+    .editor-tools { padding: 0 15px 11px; display: flex; flex-wrap: wrap; gap: 7px; }
+    .editor-tools .btn { padding: 8px 10px; font-size: 11px; }
+    .editor-wrap { padding: 0 14px; flex: 1; display: flex; min-height: 280px; }
+    #jsonEditor { width: 100%; min-height: 430px; resize: vertical; border: 1px solid #e0e6f0; border-radius: 11px; background: #f9fbff; padding: 13px 12px; color: #28405e; font: 11.3px/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; tab-size: 2; white-space: pre; }
+    .editor-footer { padding: 11px 15px 15px; }
+    .status-line { display: flex; align-items: flex-start; gap: 8px; font-size: 11px; line-height: 1.55; color: var(--muted); min-height: 35px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; margin-top: 4px; flex: 0 0 auto; }
+    .status-line.success .status-dot { background: #15a179; }
+    .status-line.error .status-dot { background: #dd5c68; }
+    .status-line.warning .status-dot { background: #e5a336; }
+    .editor-hint { background: #f2f6ff; color: #566b91; border-radius: 9px; padding: 10px; font-size: 10.5px; line-height: 1.55; margin-top: 8px; }
+    .editor-hint strong { color: #3154b7; }
+    .viewer-panel { display: flex; flex-direction: column; min-height: 650px; }
+    .viewer-head { padding: 16px 18px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid #eef1f7; }
+    .viewer-title-wrap { min-width: 0; }
+    .model-title { font-size: 14px; font-weight: 760; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 360px; }
+    .model-meta { font-size: 11px; color: var(--muted); margin-top: 5px; }
+    .live-pill { border: 1px solid #b9e6d9; background: #effbf7; color: #21846c; border-radius: 20px; font-size: 10px; font-weight: 720; display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; white-space: nowrap; }
+    .live-pill:before { content: ''; display: inline-block; width: 5px; height: 5px; background: #20a57f; border-radius: 50%; }
+    .scene-container { position: relative; flex: 1; min-height: 450px; overflow: hidden; background: radial-gradient(ellipse at 48% 38%, #ffffff 0%, #f7f9fd 45%, #eff3fa 100%); }
+    #sceneCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+    .scene-overlay-top { position: absolute; top: 13px; left: 14px; right: 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; pointer-events: none; }
+    .scene-mini-card { padding: 8px 10px; border: 1px solid rgba(222,229,241,.9); border-radius: 10px; background: rgba(255,255,255,.84); box-shadow: 0 3px 12px rgba(34,48,78,.04); backdrop-filter: blur(8px); pointer-events: auto; }
+    .scene-mini-label { font-size: 9px; color: #8290a7; letter-spacing: .55px; }
+    .scene-mini-value { font-size: 11px; color: #334765; font-weight: 700; margin-top: 3px; }
+    .scene-top-buttons { display: flex; gap: 6px; pointer-events: auto; }
+    .icon-btn { border: 1px solid #e0e6ef; background: rgba(255,255,255,.92); border-radius: 9px; height: 34px; width: 35px; display: grid; place-items: center; color: #536581; }
+    .icon-btn:hover { color: var(--blue); border-color: #b6c5f1; }
+    .icon-btn svg { width: 16px; height: 16px; }
+    .scene-bottom { position: absolute; left: 14px; right: 14px; bottom: 13px; display: flex; align-items: end; justify-content: space-between; gap: 10px; pointer-events: none; }
+    .gesture-hint { color: #7b8aa1; font-size: 10px; line-height: 1.5; border: 1px solid rgba(224,230,240,.9); background: rgba(255,255,255,.78); border-radius: 9px; padding: 8px 10px; backdrop-filter: blur(8px); }
+    .section-readout { border: 1px solid #f5d5a0; background: rgba(255,249,237,.92); color: #9b6513; border-radius: 9px; padding: 8px 10px; font-size: 10px; font-weight: 700; display: none; }
+    .section-readout.active { display: block; }
+    .viewer-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 16px; border-top: 1px solid #eef1f7; color: var(--muted); font-size: 10px; }
+    .view-chips { display: flex; align-items: center; gap: 5px; }
+    .view-chip { border: 1px solid #e0e6f1; color: #697993; background: white; border-radius: 7px; padding: 5px 7px; font-size: 10px; }
+    .view-chip.active { border-color: #b5c4f4; color: #3155c2; background: #f0f4ff; }
+    .controls-panel { padding-bottom: 14px; }
+    .control-section { padding: 15px 16px; border-top: 1px solid #eef1f7; }
+    .control-section:first-of-type { border-top: none; }
+    .control-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 11px; gap: 8px; }
+    .control-heading strong { font-size: 12px; font-weight: 760; }
+    .control-heading span { font-size: 10px; color: var(--muted); }
+    .view-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+    .view-btn { padding: 10px 8px; border: 1px solid #e0e6ef; border-radius: 10px; background: #fff; color: #52627d; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .view-btn svg { width: 15px; height: 15px; color: #6e82a9; }
+    .view-btn:hover { background: #f7f9ff; border-color: #bfcdf0; }
+    .view-btn.active { background: var(--blue-soft); border-color: #aebff2; color: #3156c0; font-weight: 750; }
+    .toggle-list { display: grid; gap: 11px; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 9px; color: #4f607a; font-size: 11px; }
+    .toggle-label { display: flex; align-items: center; gap: 8px; }
+    .toggle-symbol { width: 22px; height: 22px; display: grid; place-items: center; background: #f1f5fb; border-radius: 7px; color: #6d83a8; }
+    .toggle-symbol svg { width: 13px; height: 13px; }
+    .switch { position: relative; display: inline-block; width: 31px; height: 18px; flex: 0 0 auto; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch-track { position: absolute; inset: 0; border-radius: 20px; background: #cbd5e1; transition: .2s; cursor: pointer; }
+    .switch-track:before { content: ''; position: absolute; width: 12px; height: 12px; left: 3px; top: 3px; border-radius: 50%; background: white; box-shadow: 0 1px 3px #64748b55; transition: .2s; }
+    .switch input:checked + .switch-track { background: var(--blue); }
+    .switch input:checked + .switch-track:before { transform: translateX(13px); }
+    .select-control, .number-control { background: #fff; color: #42536e; border: 1px solid #dce4f0; border-radius: 9px; padding: 8px 9px; font-size: 11px; width: 100%; }
+    .range-row { margin-top: 13px; }
+    .range-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
+    .range-top label { font-size: 11px; color: #586a85; }
+    .range-value { color: #b97917; font: 700 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    input[type="range"] { width: 100%; accent-color: var(--orange); cursor: pointer; }
+    .range-endpoints { display: flex; justify-content: space-between; color: #98a3b5; font: 9px ui-monospace, SFMono-Regular, Menlo, monospace; margin-top: 4px; }
+    .normal-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-top: 10px; }
+    .normal-grid .field { min-width: 0; }
+    .normal-grid .field span { font-size: 10px; display: flex; align-items: center; justify-content: space-between; gap: 3px; margin-bottom: 6px; color: #71819a; }
+    .normal-grid .field output { color: #3156c0; font: 700 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .normal-grid input[type="range"] { width: 100%; accent-color: var(--blue); margin: 0; }
+    .normal-help { font-size: 9px; color: #8a98ad; line-height: 1.5; margin-top: 6px; }
+    .dynamic-point-list { display: grid; gap: 10px; }
+    .dynamic-point-card { border: 1px solid #f0dfc9; background: #fffaf4; border-radius: 10px; padding: 10px; }
+    .dynamic-point-card.dragging { border-color: #e89b28; box-shadow: 0 0 0 2px rgba(232,155,40,.12); }
+    .dynamic-point-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #80501a; font-size: 11px; font-weight: 760; }
+    .dynamic-point-chip { background: #ffedd5; color: #ad6514; border-radius: 6px; padding: 3px 6px; font: 700 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .dynamic-point-description { margin-top: 5px; color: #8a7257; font-size: 10px; line-height: 1.5; }
+    .dynamic-point-range-row { margin-top: 10px; }
+    .dynamic-point-range-row input[type="range"] { width: 100%; accent-color: #e88924; }
+    .dynamic-point-range-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #9b7a55; font-size: 9px; margin-top: 3px; }
+    .dynamic-point-range-meta output { color: #b96b13; font: 700 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .dynamic-point-empty { border: 1px dashed #e2e7ef; border-radius: 9px; padding: 10px; color: #8a98ad; font-size: 10px; line-height: 1.6; }
+    .small-note { font-size: 10px; color: #8794a9; line-height: 1.55; margin-top: 9px; }
+    .condition-list { display: grid; gap: 8px; }
+    .condition-item { padding: 8px 9px; border: 1px solid #e9edf5; background: #fbfcff; border-radius: 9px; }
+    .condition-text { font-size: 10.5px; line-height: 1.55; color: #52627b; }
+    .condition-meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; color: #8a98ad; font-size: 9px; }
+    .confidence { border-radius: 5px; padding: 2px 5px; background: #eef8f3; color: #288264; }
+    .confidence.medium { background: #fff5df; color: #a66e0d; }
+    .uncertainty-box { margin-top: 9px; border: 1px solid #f3d8a7; border-radius: 9px; background: #fffaf0; padding: 9px; color: #99691b; font-size: 10px; line-height: 1.55; }
+    .empty-state { color: #8a98ad; font-size: 11px; line-height: 1.6; }
+    .footer-note { max-width: 1740px; margin: -4px auto 0; padding: 0 20px 15px; display: flex; justify-content: space-between; gap: 12px; color: #94a0b1; font-size: 10px; }
+    .toast { position: fixed; bottom: 22px; left: 50%; transform: translate(-50%, 12px); opacity: 0; pointer-events: none; z-index: 20; padding: 10px 15px; border-radius: 10px; background: #1f2f4a; color: white; font-size: 12px; box-shadow: 0 8px 24px #1b2d4a33; transition: .2s; max-width: calc(100vw - 30px); }
+    .toast.show { opacity: 1; transform: translate(-50%,0); }
+    .hidden { display: none !important; }
+    @media (max-width: 1250px) {
+      .workspace { grid-template-columns: minmax(260px, 310px) minmax(380px, 1fr); grid-template-areas: "editor viewer" "controls viewer"; }
+      .editor-panel { grid-area: editor; }
+      .viewer-panel { grid-area: viewer; }
+      .controls-panel { grid-area: controls; }
+      #jsonEditor { min-height: 340px; }
+      .viewer-panel { min-height: 750px; }
+      .header-note { display: none; }
+    }
+    @media (max-width: 820px) {
+      .app-header { height: auto; min-height: 65px; padding: 12px 14px; }
+      .brand-title { font-size: 14px; }
+      .brand-subtitle { display: none; }
+      .brand-mark { width: 36px; height: 36px; }
+      .header-actions { gap: 6px; }
+      .header-actions .btn { font-size: 0; padding: 9px; gap: 0; }
+      .header-actions .btn svg { width: 17px; height: 17px; }
+      .workspace { display: grid; grid-template-columns: minmax(0,1fr); grid-template-areas: "viewer" "controls" "editor"; padding: 10px; gap: 11px; }
+      .viewer-panel { min-height: 550px; }
+      .scene-container { min-height: 410px; }
+      .editor-wrap { min-height: initial; }
+      #jsonEditor { min-height: 340px; }
+      .controls-panel { display: block; }
+      .controls-panel .panel-head { padding-bottom: 8px; }
+      .controls-panel-inner { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .control-section { padding: 12px; }
+      .control-section.conditions-section { grid-column: 1/-1; }
+      .footer-note { padding: 0 12px 14px; }
+    }
+    @media (max-width: 480px) {
+      .live-pill { display: none; }
+      .viewer-head { padding: 13px; }
+      .scene-container { min-height: 350px; }
+      .viewer-panel { min-height: 475px; }
+      .scene-mini-card { padding: 6px 8px; }
+      .gesture-hint { max-width: 60%; }
+      .viewer-footer { align-items: flex-start; flex-direction: column; }
+      .controls-panel-inner { grid-template-columns: 1fr; }
+      .control-section.conditions-section { grid-column: auto; }
+      .view-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+      .view-btn { flex-direction: column; gap: 4px; padding: 8px 2px; font-size: 10px; }
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7 21 7.8v8.5L12 21.5 3 16.3V7.8L12 2.7Z"/><path d="m3.4 8 8.6 5 8.6-5M12 13v8M7.3 5.4l9.2 5.3"/></svg>
+      </div>
+      <div class="brand-copy">
+        <div class="brand-title">空间几何实验室</div>
+        <div class="brand-subtitle">AI 结构化数据 · 三维交互 · 截面探索</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="header-note">当前为本地原型 · 不会上传题目数据</span>
+      <button class="btn" id="downloadBtn" title="下载当前模型 JSON">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m-5-5 5 5 5-5M4 17v3h16v-3"/></svg>导出 JSON
+      </button>
+      <button class="btn primary" id="shareBtn" title="将当前模型编码到链接中">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.6 6.5-4.2m-6.5 7 6.5 4.1"/></svg>复制分享链接
+      </button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="panel editor-panel" aria-labelledby="dataPanelTitle">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title" id="dataPanelTitle">01 / 输入几何数据</div>
+          <div class="panel-subtitle">粘贴多模态 AI 按约定协议生成的 JSON，校验后即可绘图。</div>
+        </div>
+      </div>
+      <div class="editor-tools">
+        <button class="btn primary" id="renderBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m8 5 11 7-11 7V5Z"/></svg>校验并绘图
+        </button>
+        <button class="btn" id="formatBtn">格式整理</button>
+        <button class="btn" id="importBtn">导入文件</button>
+        <input type="file" id="fileInput" accept=".json,application/json,text/json" class="hidden" />
+      </div>
+      <div class="editor-wrap">
+        <textarea id="jsonEditor" spellcheck="false" aria-label="几何模型 JSON 编辑器" autocapitalize="off" autocomplete="off"></textarea>
+      </div>
+      <div class="editor-footer">
+        <div class="status-line" id="statusLine" role="status" aria-live="polite"><span class="status-dot"></span><span id="statusText">正在准备示例模型…</span></div>
+        <div class="editor-hint"><strong>使用步骤</strong><br>1. 把 AI 输出的 JSON 粘贴到这里。<br>2. 点击“校验并绘图”。<br>3. 在右侧切换视角，拖动切割平面。<br><br>网页只读取数据，不会执行 AI 返回的代码。</div>
+      </div>
+    </section>
+
+    <section class="panel viewer-panel" aria-labelledby="modelTitle">
+      <div class="viewer-head">
+        <div class="viewer-title-wrap">
+          <div class="model-title" id="modelTitle">三棱锥 P-ABC</div>
+          <div class="model-meta" id="modelMeta">4 个顶点 · 6 条棱 · 4 个面</div>
+        </div>
+        <span class="live-pill">交互场景已就绪</span>
+      </div>
+      <div class="scene-container" id="sceneContainer">
+        <canvas id="sceneCanvas" aria-label="可旋转的三维几何模型"></canvas>
+        <div class="scene-overlay-top">
+          <div class="scene-mini-card">
+            <div class="scene-mini-label">CURRENT VIEW</div>
+            <div class="scene-mini-value" id="currentViewName">三维斜视</div>
+          </div>
+          <div class="scene-top-buttons">
+            <button class="icon-btn" id="resetCameraBtn" title="重置视角" aria-label="重置视角"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11a8 8 0 0 0-14.8-3L3 11m0-6v6h6M4 13a8 8 0 0 0 14.8 3L21 13m0 6v-6h-6"/></svg></button>
+            <button class="icon-btn" id="fullscreenBtn" title="全屏查看" aria-label="全屏查看"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button>
+          </div>
+        </div>
+        <div class="scene-bottom">
+          <div class="gesture-hint">鼠标拖动：旋转 · 滚轮：缩放<br>触屏拖动：旋转 · 双指：缩放</div>
+          <div class="section-readout" id="sectionReadout">截面已启用</div>
+        </div>
+      </div>
+      <div class="viewer-footer">
+        <span id="sceneFootnote">蓝色实线：保留侧棱 · 灰蓝虚线：切除侧棱 · 橙色区域：截面</span>
+        <div class="view-chips" aria-label="快捷视角">
+          <button class="view-chip" data-view="front">正视</button>
+          <button class="view-chip" data-view="top">俯视</button>
+          <button class="view-chip" data-view="side">侧视</button>
+          <button class="view-chip active" data-view="isometric">斜视</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel controls-panel" aria-labelledby="controlPanelTitle">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title" id="controlPanelTitle">02 / 观察与探索</div>
+          <div class="panel-subtitle">使用预设视角和截面控制器，建立空间想象。</div>
+        </div>
+      </div>
+      <div class="controls-panel-inner">
+        <div class="control-section">
+          <div class="control-heading"><strong>标准视图</strong><span>正投影观察</span></div>
+          <div class="view-grid">
+            <button class="view-btn" data-view="front"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5h16v14H4zM8 9h8v6H8z"/></svg>正视图</button>
+            <button class="view-btn" data-view="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/></svg>俯视图</button>
+            <button class="view-btn" data-view="side"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 4h10v16H7zM10 8h4v8h-4z"/></svg>侧视图</button>
+            <button class="view-btn active" data-view="isometric"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 2.8 9 5.1v8.2l-9 5.1-9-5.1V7.9l9-5.1Z"/><path d="m3.4 8 8.6 5 8.6-5M12 13v8"/></svg>三维斜视</button>
+          </div>
+        </div>
+        <div class="control-section">
+          <div class="control-heading"><strong>显示内容</strong><span>按需开关</span></div>
+          <div class="toggle-list">
+            <label class="toggle-row"><span class="toggle-label"><span class="toggle-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7"/></svg></span>顶点与标记</span><span class="switch"><input type="checkbox" id="showVertices" checked><span class="switch-track"></span></span></label>
+            <label class="toggle-row"><span class="toggle-label"><span class="toggle-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 17 6-10 10 10H4Z"/></svg></span>显示面片</span><span class="switch"><input type="checkbox" id="showFaces" checked><span class="switch-track"></span></span></label>
+            <label class="toggle-row"><span class="toggle-label"><span class="toggle-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18 20 6"/></svg></span>显示棱线</span><span class="switch"><input type="checkbox" id="showEdges" checked><span class="switch-track"></span></span></label>
+            <label class="toggle-row"><span class="toggle-label"><span class="toggle-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 16 6-8 10 8" stroke-dasharray="3 2"/></svg></span>辅助线</span><span class="switch"><input type="checkbox" id="showAux" checked><span class="switch-track"></span></span></label>
+          </div>
+        </div>
+        <div class="control-section" id="dynamicPointSection">
+          <div class="control-heading"><strong>动点探索</strong><span id="dynamicPointCount">0 个动点</span></div>
+          <div id="dynamicPointControls" class="dynamic-point-list">
+            <div class="dynamic-point-empty">当前数据没有定义动点。可在 JSON 的 dynamicPoints 字段中添加，例如让 M 在线段 AB 上运动。</div>
+          </div>
+          <div class="small-note">拖动三维图中的橙色动点，或使用这里的滑块调整位置。动点会约束在线段上；相关辅助线也会随之更新。</div>
+        </div>
+        <div class="control-section">
+          <div class="control-heading"><strong>平面切割</strong><label class="switch"><input type="checkbox" id="sectionEnabled"><span class="switch-track"></span></label></div>
+          <div class="small-note" style="margin-top:-2px;margin-bottom:10px">平面方程：nₓx + nᵧy + n_z z = d</div>
+          <select class="select-control" id="planePreset" aria-label="切割平面方向">
+            <option value="xy">水平切面（平行 XY）</option>
+            <option value="xz">竖直切面（平行 XZ）</option>
+            <option value="yz">竖直切面（平行 YZ）</option>
+            <option value="custom">自定义平面法向量</option>
+          </select>
+          <div id="customNormal" class="normal-grid hidden" aria-label="自定义切割平面法向量分量">
+            <label class="field"><span>nₓ <output id="normalXValue" for="normalX">0.00</output></span><input id="normalX" type="range" min="-1" max="1" step="0.01" value="0" aria-label="法向量 x 分量" /></label>
+            <label class="field"><span>nᵧ <output id="normalYValue" for="normalY">0.00</output></span><input id="normalY" type="range" min="-1" max="1" step="0.01" value="0" aria-label="法向量 y 分量" /></label>
+            <label class="field"><span>n_z <output id="normalZValue" for="normalZ">1.00</output></span><input id="normalZ" type="range" min="-1" max="1" step="0.01" value="1" aria-label="法向量 z 分量" /></label>
+          </div>
+          <div id="normalHelp" class="normal-help hidden">分别拖动 nₓ、nᵧ、n_z 三个滑块调整平面方向。法向量会自动归一化，三个分量不能同时为 0。</div>
+          <div class="range-row">
+            <div class="range-top"><label for="sectionSlider">沿法向移动平面</label><span class="range-value" id="sectionOffsetValue">d = 2.00</span></div>
+            <input type="range" id="sectionSlider" min="0" max="1000" step="1" value="500" />
+            <div class="range-endpoints"><span id="sectionMinLabel">最小位置</span><span id="sectionMaxLabel">最大位置</span></div>
+          </div>
+          <div class="small-note" id="sectionStatus">橙色多边形为当前截面；切割后，切除侧的棱线会用虚线保留显示。</div>
+        </div>
+        <div class="control-section conditions-section">
+          <div class="control-heading"><strong>题目条件</strong><span id="conditionCount">0 条</span></div>
+          <div class="condition-list" id="conditionList"><div class="empty-state">当前示例的识别条件将在此显示。真实题目建议同时保留原题与人工核验环节。</div></div>
+          <div id="uncertaintyList"></div>
+        </div>
+      </div>
+    </aside>
+  </main>
+  <div class="footer-note"><span>空间几何实验室 · 动点与截面虚线棱版 v1.3</span><span>首次加载需要联网获取 Three.js 图形库。模型数据仅在当前浏览器处理。</span></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const SAMPLE = {
+      schemaVersion: "1.1",
+      title: "三棱锥 P-ABC：动点 M 在线段 AB 上运动",
+      modelType: "convex_polyhedron",
+      vertices: [
+        { id: "A", label: "A", position: [0, 0, 0] },
+        { id: "B", label: "B", position: [4, 0, 0] },
+        { id: "C", label: "C", position: [0, 3, 0] },
+        { id: "P", label: "P", position: [0, 0, 4] }
+      ],
+      edges: [
+        { from: "A", to: "B" }, { from: "B", to: "C" }, { from: "C", to: "A" },
+        { from: "P", to: "A" }, { from: "P", to: "B" }, { from: "P", to: "C" }
+      ],
+      faces: [
+        { id: "ABC", label: "底面 ABC", vertices: ["A", "C", "B"] },
+        { id: "PAB", label: "侧面 PAB", vertices: ["A", "B", "P"] },
+        { id: "PBC", label: "侧面 PBC", vertices: ["B", "C", "P"] },
+        { id: "PCA", label: "侧面 PCA", vertices: ["C", "A", "P"] }
+      ],
+      auxiliarySegments: [
+        { from: "M", to: "C" }
+      ],
+      dynamicPoints: [
+        { id: "M", label: "M", onSegment: ["A", "B"], t: 0.5, description: "点 M 在线段 AB 上运动；拖动橙色点或调节滑块，观察辅助线 MC 的变化。" }
+      ],
+      conditions: [
+        { text: "PA 垂直于平面 ABC", source: "题干", confidence: "high" },
+        { text: "底面 ABC 位于 z = 0 平面", source: "模型设定", confidence: "high" }
+      ],
+      uncertainties: [],
+      initialView: "isometric",
+      defaultSectionPlane: { normal: [0, 0, 1], offset: 2 }
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const editor = $('jsonEditor');
+    const sceneCanvas = $('sceneCanvas');
+    const sceneContainer = $('sceneContainer');
+    const statusLine = $('statusLine');
+    const statusText = $('statusText');
+    const toast = $('toast');
+    let toastTimeout = null;
+    let modelData = null;
+    let vertexMap = new Map();
+    let bbox = null;
+    let modelSpan = 5;
+    let sectionNormal = new THREE.Vector3(0,0,1);
+    let sectionOffset = 2;
+    let currentView = 'isometric';
+    let sectionActive = true;
+    let modelRoot = new THREE.Group();
+    let faceGroup = new THREE.Group();
+    let edgeGroup = new THREE.Group();
+    let hiddenEdgeGroup = new THREE.Group();
+    let vertexGroup = new THREE.Group();
+    let labelGroup = new THREE.Group();
+    let auxGroup = new THREE.Group();
+    let sectionGroup = new THREE.Group();
+    let planeGroup = new THREE.Group();
+    let dynamicPointGroup = new THREE.Group();
+    let faceMaterial, edgeMaterial, hiddenEdgeMaterial, auxMaterial;
+    let vertexMeshes = [];
+    let labelSprites = [];
+    let dynamicPointObjects = [];
+    let dynamicPointPositions = new Map();
+    let dynamicPointControls = new Map();
+    let activeDynamicDrag = null;
+    const dynamicPointRaycaster = new THREE.Raycaster();
+    const dynamicPointPointer = new THREE.Vector2();
+    let gridGroup = new THREE.Group();
+    let cameraBaseHeight = 9;
+    let renderFailed = false;
+    let controls = null;
+    const viewNames = { front: '正视图', top: '俯视图', side: '侧视图', isometric: '三维斜视' };
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#f5f7fb');
+    const camera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.01, 1000);
+    camera.up.set(0, 0, 1);
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas: sceneCanvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.localClippingEnabled = true;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.setClearColor('#f5f7fb', 1);
+    } catch (e) {
+      renderFailed = true;
+      setStatus('当前浏览器无法初始化 WebGL 2。请尝试更新浏览器、开启硬件加速或更换设备。', 'error');
+      sceneCanvas.style.display = 'none';
+    }
+
+    if (renderer) {
+      controls = createOrbitControls();
+      const ambient = new THREE.HemisphereLight(0xffffff, 0xc5d0e2, 2.0);
+      scene.add(ambient);
+      const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+      keyLight.position.set(-7, -9, 12);
+      scene.add(keyLight);
+      scene.add(modelRoot);
+      scene.add(gridGroup);
+      createGrid();
+
+      function frame() {
+        requestAnimationFrame(frame);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      frame();
+      window.addEventListener('resize', resizeRenderer);
+      resizeRenderer();
+
+      // The controls instance is replaced when switching between axes with different up directions.
+      window.__geometryControls = controls;
+    }
+
+    function createOrbitControls() {
+      const orbit = new OrbitControls(camera, renderer.domElement);
+      orbit.enableDamping = true;
+      orbit.dampingFactor = 0.07;
+      orbit.screenSpacePanning = true;
+      orbit.minZoom = 0.35;
+      orbit.maxZoom = 6;
+      orbit.addEventListener('change', () => { if (renderer) renderer.render(scene, camera); });
+      return orbit;
+    }
+
+    function setStatus(message, type = '') {
+      statusText.textContent = message;
+      statusLine.className = 'status-line' + (type ? ' ' + type : '');
+    }
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+    function vec3(a) { return new THREE.Vector3(Number(a[0]), Number(a[1]), Number(a[2])); }
+    function normalizePlane(normal, offset) {
+      const n = vec3(normal);
+      const length = n.length();
+      if (!Number.isFinite(length) || length < 1e-9) throw new Error('切割平面的法向量不能是零向量。');
+      return { normal: n.multiplyScalar(1 / length), offset: Number(offset) / length };
+    }
+    function validateData(data) {
+      const errors = [];
+      const warnings = [];
+      if (!data || typeof data !== 'object' || Array.isArray(data)) return { errors: ['JSON 顶层必须是一个对象。'], warnings };
+      if (!Array.isArray(data.vertices) || data.vertices.length < 3) errors.push('vertices 至少需要 3 个顶点。');
+      if (!Array.isArray(data.edges)) errors.push('edges 必须是数组。');
+      if (!Array.isArray(data.faces) || data.faces.length < 1) errors.push('faces 必须是至少包含一个面的数组。');
+      if (data.modelType && data.modelType !== 'convex_polyhedron') warnings.push('当前原型主要面向凸多面体模型。');
+      if (errors.length) return { errors, warnings };
+      const ids = new Set();
+      for (const [i, v] of data.vertices.entries()) {
+        if (!v || typeof v.id !== 'string' || !v.id.trim()) errors.push(`vertices 第 ${i + 1} 项缺少字符串 id。`);
+        else if (ids.has(v.id)) errors.push(`顶点 ID 重复：${v.id}。`);
+        else ids.add(v.id);
+        if (!Array.isArray(v.position) || v.position.length !== 3 || !v.position.every(n => typeof n === 'number' && Number.isFinite(n))) errors.push(`顶点 ${v?.id || i + 1} 的 position 必须是 3 个有限数字。`);
+      }
+      const edgeKeys = new Set();
+      for (const [i, edge] of data.edges.entries()) {
+        if (!edge || !ids.has(edge.from) || !ids.has(edge.to)) errors.push(`edges 第 ${i + 1} 项引用了不存在的顶点。`);
+        else if (edge.from === edge.to) errors.push(`edges 第 ${i + 1} 项不能连接同一个顶点。`);
+        else edgeKeys.add(edgeKey(edge.from, edge.to));
+      }
+      for (const [i, face] of data.faces.entries()) {
+        if (!face || !Array.isArray(face.vertices) || face.vertices.length < 3) { errors.push(`faces 第 ${i + 1} 项至少需要 3 个顶点。`); continue; }
+        if (new Set(face.vertices).size !== face.vertices.length) errors.push(`面 ${face.id || i + 1} 含重复顶点。`);
+        for (const id of face.vertices) if (!ids.has(id)) errors.push(`面 ${face.id || i + 1} 引用了不存在的顶点 ${id}。`);
+        for (let j=0; j<face.vertices.length; j++) {
+          const a = face.vertices[j], b = face.vertices[(j+1)%face.vertices.length];
+          if (ids.has(a) && ids.has(b) && !edgeKeys.has(edgeKey(a,b))) warnings.push(`面 ${face.id || i + 1} 的边 ${a}-${b} 未在 edges 中列出。`);
+        }
+      }
+      if (data.auxiliarySegments != null && !Array.isArray(data.auxiliarySegments)) errors.push('auxiliarySegments 必须是数组。');
+      if (data.dynamicPoints != null && !Array.isArray(data.dynamicPoints)) errors.push('dynamicPoints 必须是数组。');
+      const dynamicIds = new Set();
+      const allPointIds = new Set(ids);
+      for (const [i, point] of (Array.isArray(data.dynamicPoints) ? data.dynamicPoints : []).entries()) {
+        if (!point || typeof point.id !== 'string' || !point.id.trim()) {
+          errors.push(`dynamicPoints 第 ${i + 1} 项缺少字符串 id。`);
+          continue;
+        }
+        if (allPointIds.has(point.id)) errors.push(`动点 ID 与其他点重复：${point.id}。`);
+        allPointIds.add(point.id);
+        dynamicIds.add(point.id);
+        if (!Array.isArray(point.onSegment) || point.onSegment.length !== 2 || point.onSegment[0] === point.onSegment[1] || point.onSegment.some(id => !ids.has(id))) {
+          errors.push(`动点 ${point.id} 的 onSegment 必须引用两个不同的静态顶点 ID，例如 ["A", "B"]。`);
+        }
+        if (typeof point.t !== 'number' || !Number.isFinite(point.t) || point.t < 0 || point.t > 1) errors.push(`动点 ${point.id} 的 t 必须是 0 到 1 之间的有限数字。`);
+      }
+      if (Array.isArray(data.auxiliarySegments)) {
+        for (const [i, seg] of data.auxiliarySegments.entries()) {
+          if (!seg || !allPointIds.has(seg.from) || !allPointIds.has(seg.to)) errors.push(`auxiliarySegments 第 ${i + 1} 项引用了不存在的静态点或动点。`);
+          else if (seg.from === seg.to) errors.push(`auxiliarySegments 第 ${i + 1} 项不能连接同一个点。`);
+        }
+      }
+      if (data.conditions != null && !Array.isArray(data.conditions)) errors.push('conditions 必须是数组。');
+      if (data.uncertainties != null && !Array.isArray(data.uncertainties)) errors.push('uncertainties 必须是数组。');
+      if (data.defaultSectionPlane) {
+        try {
+          const n = data.defaultSectionPlane.normal;
+          if (!Array.isArray(n) || n.length !== 3 || !n.every(Number.isFinite) || !Number.isFinite(data.defaultSectionPlane.offset)) errors.push('defaultSectionPlane 需要包含 3 个有限法向量分量和有限 offset。');
+          else normalizePlane(n, data.defaultSectionPlane.offset);
+        } catch(e) { errors.push(e.message); }
+      }
+      if (errors.length === 0) {
+        const points = data.vertices.map(v => vec3(v.position));
+        const box = new THREE.Box3().setFromPoints(points);
+        if (box.getSize(new THREE.Vector3()).length() < 1e-8) errors.push('所有顶点重合，模型无法绘制。');
+        for (const face of data.faces) {
+          if (!face || !Array.isArray(face.vertices) || face.vertices.length < 3 || face.vertices.some(id => !ids.has(id))) continue;
+          const ps = face.vertices.map(id => vec3(data.vertices.find(v=>v.id===id).position));
+          let area2 = 0;
+          for (let i=1;i<ps.length-1;i++) area2 += ps[ i ].clone().sub(ps[0]).cross(ps[i+1].clone().sub(ps[0])).length();
+          if (area2 < 1e-9) errors.push(`面 ${face.id || face.label || ''} 面积接近 0，无法绘制。`);
+        }
+      }
+      return { errors, warnings };
+    }
+    function edgeKey(a,b) { return [a,b].sort().join('::'); }
+    function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+    function computeDynamicPosition(point) {
+      const ids = point?.onSegment;
+      if (!Array.isArray(ids) || ids.length !== 2) return new THREE.Vector3();
+      const a = vertexMap.get(ids[0]), b = vertexMap.get(ids[1]);
+      if (!a || !b) return new THREE.Vector3();
+      return a.clone().lerp(b, clamp(Number(point.t) || 0, 0, 1));
+    }
+    function getPointPosition(id) {
+      return vertexMap.get(id) || dynamicPointPositions.get(id) || null;
+    }
+
+    function clearGroup(group) {
+      while (group.children.length) {
+        const child = group.children[group.children.length - 1];
+        group.remove(child);
+        if (child.geometry && child.geometry !== sharedSphereGeometry && child.geometry !== sharedDynamicPointGeometry) child.geometry.dispose();
+        if (child.material && ![faceMaterial, edgeMaterial, hiddenEdgeMaterial, auxMaterial].includes(child.material)) {
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+          materials.forEach(m => { if (m.map) m.map.dispose(); m.dispose(); });
+        }
+      }
+    }
+    const sharedSphereGeometry = new THREE.SphereGeometry(0.035, 18, 12);
+    const sharedDynamicPointGeometry = new THREE.SphereGeometry(1, 22, 16);
+    function createGrid() {
+      if (!renderer) return;
+      clearGroup(gridGroup);
+      const size = Math.max(modelSpan || 5, 5) * 1.6;
+      const step = size > 14 ? 1 : 0.5;
+      const z = bbox ? Math.floor(bbox.min.z / step) * step : 0;
+      const positions = [];
+      for (let x = -size; x <= size + 1e-6; x += step) {
+        positions.push(x, -size, z, x, size, z);
+      }
+      for (let y = -size; y <= size + 1e-6; y += step) {
+        positions.push(-size, y, z, size, y, z);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(positions,3));
+      const m = new THREE.LineBasicMaterial({ color: '#dbe2ed', transparent: true, opacity: .58 });
+      gridGroup.add(new THREE.LineSegments(g,m));
+    }
+
+    function makeLabelSprite(label, scale) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,256,128);
+      const text = String(label ?? '');
+      ctx.font = '700 48px "Microsoft YaHei", sans-serif';
+      const textWidth = Math.min(190, ctx.measureText(text).width + 38);
+      const left = (256 - textWidth) / 2;
+      ctx.beginPath();
+      ctx.roundRect(left, 30, textWidth, 62, 18);
+      ctx.fillStyle = 'rgba(255,255,255,0.94)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(67,93,139,0.28)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#29466f'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(text, 128, 61, 170);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, sizeAttenuation: true });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(scale * 1.05, scale * 0.52, 1);
+      return sprite;
+    }
+
+    function buildModel(data, fromHash = false) {
+      modelData = data;
+      vertexMap = new Map(data.vertices.map(v => [v.id, vec3(v.position)]));
+      dynamicPointPositions = new Map();
+      for (const point of (data.dynamicPoints || [])) dynamicPointPositions.set(point.id, computeDynamicPosition(point));
+      bbox = new THREE.Box3().setFromPoints([...vertexMap.values()]);
+      const size = bbox.getSize(new THREE.Vector3());
+      modelSpan = Math.max(size.x, size.y, size.z, 1);
+      [faceGroup, edgeGroup, hiddenEdgeGroup, vertexGroup, labelGroup, auxGroup, sectionGroup, planeGroup, dynamicPointGroup].forEach(clearGroup);
+      dynamicPointObjects = [];
+      dynamicPointControls = new Map();
+      [faceMaterial, edgeMaterial, hiddenEdgeMaterial, auxMaterial].forEach(m => { if (m) m.dispose(); });
+      modelRoot.clear();
+      modelRoot.add(faceGroup, edgeGroup, hiddenEdgeGroup, vertexGroup, labelGroup, auxGroup, sectionGroup, planeGroup, dynamicPointGroup);
+
+      const clip = new THREE.Plane(sectionNormal.clone(), -sectionOffset);
+      const reverseClip = new THREE.Plane(sectionNormal.clone().negate(), sectionOffset);
+      faceMaterial = new THREE.MeshStandardMaterial({ color: '#8eb3ed', roughness: .7, metalness: 0, transparent: true, opacity: .37, side: THREE.DoubleSide, clippingPlanes: sectionActive ? [clip] : [] });
+      edgeMaterial = new THREE.LineBasicMaterial({ color: '#3869bd', transparent: true, opacity: .98, clippingPlanes: sectionActive ? [clip] : [] });
+      // Edges on the removed half-space are drawn as dashed ghost edges.
+      // Disable depth testing so those edges remain visible through the retained shell,
+      // making the original spatial structure easier to understand.
+      hiddenEdgeMaterial = new THREE.LineDashedMaterial({ color: '#70819f', dashSize: Math.max(modelSpan * .065, .06), gapSize: Math.max(modelSpan * .045, .045), transparent: true, opacity: .9, depthTest: false, depthWrite: false, clippingPlanes: sectionActive ? [reverseClip] : [] });
+      auxMaterial = new THREE.LineDashedMaterial({ color: '#8796b2', dashSize: modelSpan * .055, gapSize: modelSpan * .035, transparent: true, opacity: .95, clippingPlanes: sectionActive ? [clip] : [] });
+
+      // Triangulate polygonal faces as a fan. DoubleSide handles inconsistent face winding in input data.
+      const facePositions = [];
+      for (const f of data.faces) {
+        const pts = f.vertices.map(id => vertexMap.get(id));
+        for (let i=1;i<pts.length-1;i++) facePositions.push(...pts[0].toArray(), ...pts[i].toArray(), ...pts[i+1].toArray());
+      }
+      const faceGeo = new THREE.BufferGeometry();
+      faceGeo.setAttribute('position', new THREE.Float32BufferAttribute(facePositions,3));
+      faceGeo.computeVertexNormals();
+      if (facePositions.length) faceGroup.add(new THREE.Mesh(faceGeo, faceMaterial));
+
+      const segments = [];
+      for (const edge of data.edges) {
+        const a = vertexMap.get(edge.from), b = vertexMap.get(edge.to);
+        if (!a || !b) continue;
+        segments.push(...a.toArray(), ...b.toArray());
+      }
+      const edgeGeo = new THREE.BufferGeometry();
+      edgeGeo.setAttribute('position', new THREE.Float32BufferAttribute(segments,3));
+      if (segments.length) {
+        edgeGroup.add(new THREE.LineSegments(edgeGeo, edgeMaterial));
+        const hiddenGeo = edgeGeo.clone();
+        const hiddenLines = new THREE.LineSegments(hiddenGeo, hiddenEdgeMaterial);
+        hiddenLines.computeLineDistances();
+        hiddenLines.renderOrder = 4;
+        hiddenEdgeGroup.add(hiddenLines);
+      }
+
+      rebuildAuxiliaryLines();
+
+      vertexMeshes = [];
+      labelSprites = [];
+      const radius = Math.max(modelSpan * .009, .035);
+      const sphereGeo = new THREE.SphereGeometry(radius, 18, 14);
+      const labelSize = Math.max(modelSpan * .14, .42);
+      for (const v of data.vertices) {
+        const p = vertexMap.get(v.id);
+        const dotMat = new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#3159a5', emissiveIntensity: .14, roughness: .4, clippingPlanes: sectionActive ? [clip] : [] });
+        const dot = new THREE.Mesh(sphereGeo, dotMat);
+        dot.position.copy(p);
+        dot.userData.vertexId = v.id;
+        vertexGroup.add(dot); vertexMeshes.push(dot);
+        const sprite = makeLabelSprite(v.label || v.id, labelSize);
+        sprite.position.copy(p).add(new THREE.Vector3(radius * 1.7, radius * 1.7, radius * 1.3));
+        sprite.userData.vertexId = v.id;
+        labelGroup.add(sprite); labelSprites.push(sprite);
+      }
+
+      const dynamicRadius = Math.max(modelSpan * .018, .075);
+      for (const point of (data.dynamicPoints || [])) {
+        const p = dynamicPointPositions.get(point.id) || computeDynamicPosition(point);
+        const dotMat = new THREE.MeshBasicMaterial({ color: '#f08a24', depthTest: false, toneMapped: false });
+        const dot = new THREE.Mesh(sharedDynamicPointGeometry, dotMat);
+        dot.position.copy(p);
+        dot.scale.setScalar(dynamicRadius);
+        dot.renderOrder = 20;
+        dot.userData.dynamicPointId = point.id;
+        dot.userData.isDynamicPoint = true;
+        dynamicPointGroup.add(dot);
+        const sprite = makeLabelSprite(point.label || point.id, labelSize * .92);
+        const labelOffset = new THREE.Vector3(dynamicRadius * 1.8, dynamicRadius * 1.8, dynamicRadius * 1.35);
+        sprite.position.copy(p).add(labelOffset);
+        sprite.userData.dynamicPointId = point.id;
+        sprite.renderOrder = 21;
+        dynamicPointGroup.add(sprite);
+        dynamicPointObjects.push({ id: point.id, mesh: dot, label: sprite, labelOffset });
+      }
+
+      faceGroup.visible = $('showFaces').checked;
+      edgeGroup.visible = $('showEdges').checked;
+      vertexGroup.visible = $('showVertices').checked;
+      labelGroup.visible = $('showVertices').checked;
+      auxGroup.visible = $('showAux').checked;
+      dynamicPointGroup.visible = $('showVertices').checked;
+      renderDynamicPointControls(data);
+
+      createGrid();
+      fitCamera(true);
+      if (data.defaultSectionPlane && !fromHash) {
+        try {
+          const normalized = normalizePlane(data.defaultSectionPlane.normal, data.defaultSectionPlane.offset);
+          sectionNormal.copy(normalized.normal);
+          sectionOffset = normalized.offset;
+          updatePresetFromNormal();
+          updatePlaneSliderFromCurrentOffset();
+        } catch (e) { /* invalid default plane is already reported by validation */ }
+      }
+      updateConditionPanel(data);
+      $('modelTitle').textContent = data.title || '未命名几何模型';
+      $('modelMeta').textContent = `${data.vertices.length} 个顶点 · ${data.edges.length} 条棱 · ${data.faces.length} 个面${(data.dynamicPoints || []).length ? ` · ${(data.dynamicPoints || []).length} 个动点` : ''}`;
+      applyClipPlane();
+      updateSectionUI();
+      setView(data.initialView && viewNames[data.initialView] ? data.initialView : 'isometric', false);
+      if (fromHash) showToast('已从分享链接载入模型');
+    }
+
+    function rebuildAuxiliaryLines() {
+      if (!modelData || !auxMaterial) return;
+      clearGroup(auxGroup);
+      const positions = [];
+      for (const seg of (modelData.auxiliarySegments || [])) {
+        const a = getPointPosition(seg.from), b = getPointPosition(seg.to);
+        if (!a || !b) continue;
+        positions.push(...a.toArray(), ...b.toArray());
+      }
+      if (!positions.length) return;
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      const lines = new THREE.LineSegments(geometry, auxMaterial);
+      lines.computeLineDistances();
+      auxGroup.add(lines);
+    }
+
+    function renderDynamicPointControls(data) {
+      const container = $('dynamicPointControls');
+      const points = Array.isArray(data.dynamicPoints) ? data.dynamicPoints : [];
+      $('dynamicPointCount').textContent = `${points.length} 个动点`;
+      container.replaceChildren();
+      dynamicPointControls = new Map();
+      if (!points.length) {
+        const empty = document.createElement('div');
+        empty.className = 'dynamic-point-empty';
+        empty.textContent = '当前数据没有定义动点。可在 JSON 的 dynamicPoints 字段中添加，例如让 M 在线段 AB 上运动。';
+        container.append(empty);
+        return;
+      }
+      for (const point of points) {
+        const card = document.createElement('div');
+        card.className = 'dynamic-point-card';
+        card.dataset.dynamicPointId = point.id;
+        const heading = document.createElement('div');
+        heading.className = 'dynamic-point-title';
+        const title = document.createElement('span');
+        title.textContent = `${point.label || point.id} 在线段 ${(point.onSegment || []).join('—')}`;
+        const chip = document.createElement('span');
+        chip.className = 'dynamic-point-chip';
+        chip.textContent = point.id;
+        heading.append(title, chip);
+        const description = document.createElement('div');
+        description.className = 'dynamic-point-description';
+        description.textContent = point.description || `拖动橙色点，或调节参数 t；${point.id} = ${(point.onSegment || []).join(' + t·')}`;
+        const row = document.createElement('div');
+        row.className = 'dynamic-point-range-row';
+        const range = document.createElement('input');
+        range.type = 'range'; range.min = '0'; range.max = '1'; range.step = '0.01';
+        range.value = String(clamp(Number(point.t), 0, 1));
+        range.setAttribute('aria-label', `${point.label || point.id} 在线段上的位置`);
+        const meta = document.createElement('div');
+        meta.className = 'dynamic-point-range-meta';
+        const start = document.createElement('span'); start.textContent = `${(point.onSegment || [])[0] || 'A'} (t=0)`;
+        const output = document.createElement('output'); output.textContent = `t = ${Number(point.t).toFixed(2)}`;
+        const end = document.createElement('span'); end.textContent = `${(point.onSegment || [])[1] || 'B'} (t=1)`;
+        meta.append(start, output, end);
+        row.append(range, meta);
+        card.append(heading, description, row);
+        container.append(card);
+        dynamicPointControls.set(point.id, { card, range, output });
+        range.addEventListener('input', () => updateDynamicPoint(point.id, Number(range.value)));
+        range.addEventListener('change', syncDynamicPointsToEditor);
+      }
+    }
+
+    function updateDynamicPoint(id, t) {
+      if (!modelData) return;
+      const point = (modelData.dynamicPoints || []).find(item => item.id === id);
+      if (!point) return;
+      point.t = clamp(Number(t), 0, 1);
+      const position = computeDynamicPosition(point);
+      dynamicPointPositions.set(id, position);
+      const object = dynamicPointObjects.find(item => item.id === id);
+      if (object) {
+        object.mesh.position.copy(position);
+        object.label.position.copy(position).add(object.labelOffset);
+      }
+      const control = dynamicPointControls.get(id);
+      if (control) {
+        control.range.value = String(point.t);
+        control.output.textContent = `t = ${point.t.toFixed(2)}`;
+      }
+      rebuildAuxiliaryLines();
+      updateDynamicPointVisibility();
+      if (renderer) renderer.render(scene, camera);
+    }
+
+    function updateDynamicPointVisibility() {
+      const show = $('showVertices')?.checked ?? true;
+      for (const object of dynamicPointObjects) {
+        const position = dynamicPointPositions.get(object.id);
+        const clipped = Boolean(sectionActive && position && position.dot(sectionNormal) - sectionOffset < -modelSpan * 1e-6);
+        object.mesh.visible = show && !clipped;
+        object.label.visible = show && !clipped;
+        const control = dynamicPointControls.get(object.id);
+        if (control) control.card.classList.toggle('is-clipped', clipped);
+      }
+    }
+
+    function syncDynamicPointsToEditor() {
+      if (!modelData || !(modelData.dynamicPoints || []).length) return;
+      try {
+        const edited = JSON.parse(editor.value);
+        if (!Array.isArray(edited.dynamicPoints)) return;
+        const current = new Map((modelData.dynamicPoints || []).map(point => [point.id, point]));
+        let changed = false;
+        for (const point of edited.dynamicPoints) {
+          const active = current.get(point.id);
+          if (active && JSON.stringify(point.onSegment) === JSON.stringify(active.onSegment)) {
+            point.t = active.t;
+            changed = true;
+          }
+        }
+        if (changed) editor.value = JSON.stringify(edited, null, 2);
+      } catch (_) {
+        // Do not overwrite an invalid or unsaved JSON draft in the editor.
+      }
+    }
+
+    function pointerToNdc(event) {
+      const rect = sceneCanvas.getBoundingClientRect();
+      dynamicPointPointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      dynamicPointPointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      return dynamicPointPointer;
+    }
+
+    function beginDynamicPointDrag(event) {
+      if (event.button !== 0 || !renderer || !dynamicPointObjects.length) return;
+      pointerToNdc(event);
+      dynamicPointRaycaster.setFromCamera(dynamicPointPointer, camera);
+      const pickable = dynamicPointObjects.map(item => item.mesh).filter(mesh => mesh.visible);
+      const hits = dynamicPointRaycaster.intersectObjects(pickable, false);
+      if (!hits.length) return;
+      const id = hits[0].object.userData.dynamicPointId;
+      activeDynamicDrag = { id, pointerId: event.pointerId };
+      if (controls) controls.enabled = false;
+      sceneCanvas.style.cursor = 'grabbing';
+      sceneCanvas.setPointerCapture?.(event.pointerId);
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const control = dynamicPointControls.get(id);
+      if (control) control.card.classList.add('dragging');
+    }
+
+    function moveDynamicPointDrag(event) {
+      if (!activeDynamicDrag || activeDynamicDrag.pointerId !== event.pointerId) return;
+      const point = (modelData.dynamicPoints || []).find(item => item.id === activeDynamicDrag.id);
+      if (!point) return;
+      const a = vertexMap.get(point.onSegment[0]);
+      const b = vertexMap.get(point.onSegment[1]);
+      if (!a || !b) return;
+      const rect = sceneCanvas.getBoundingClientRect();
+      const aNdc = a.clone().project(camera), bNdc = b.clone().project(camera);
+      const ax = rect.left + (aNdc.x + 1) * rect.width / 2;
+      const ay = rect.top + (1 - aNdc.y) * rect.height / 2;
+      const bx = rect.left + (bNdc.x + 1) * rect.width / 2;
+      const by = rect.top + (1 - bNdc.y) * rect.height / 2;
+      const dx = bx - ax, dy = by - ay;
+      const denom = dx * dx + dy * dy;
+      if (denom < 1) return;
+      const t = clamp(((event.clientX - ax) * dx + (event.clientY - ay) * dy) / denom, 0, 1);
+      updateDynamicPoint(point.id, t);
+      event.preventDefault();
+    }
+
+    function endDynamicPointDrag(event) {
+      if (!activeDynamicDrag || (event && activeDynamicDrag.pointerId !== event.pointerId)) return;
+      const id = activeDynamicDrag.id;
+      const control = dynamicPointControls.get(id);
+      if (control) control.card.classList.remove('dragging');
+      if (controls) controls.enabled = true;
+      if (sceneCanvas.hasPointerCapture?.(activeDynamicDrag.pointerId)) sceneCanvas.releasePointerCapture(activeDynamicDrag.pointerId);
+      activeDynamicDrag = null;
+      sceneCanvas.style.cursor = '';
+      syncDynamicPointsToEditor();
+    }
+
+    function updateConditionPanel(data) {
+      const conditions = Array.isArray(data.conditions) ? data.conditions : [];
+      $('conditionCount').textContent = `${conditions.length} 条`;
+      const list = $('conditionList');
+      list.replaceChildren();
+      if (!conditions.length) {
+        const empty = document.createElement('div'); empty.className='empty-state'; empty.textContent='JSON 中没有提供条件说明。'; list.append(empty);
+      } else {
+        for (const c of conditions) {
+          const item = document.createElement('div'); item.className='condition-item';
+          const text = document.createElement('div'); text.className='condition-text'; text.textContent = typeof c === 'string' ? c : (c.text || '未命名条件'); item.append(text);
+          if (typeof c === 'object') {
+            const meta = document.createElement('div'); meta.className='condition-meta';
+            const source = document.createElement('span'); source.textContent = c.source || '未注明来源'; meta.append(source);
+            const confidence = document.createElement('span'); confidence.className='confidence' + (c.confidence === 'medium' || c.confidence === 'low' ? ' medium' : ''); confidence.textContent = c.confidence === 'high' ? '高置信度' : c.confidence === 'medium' ? '中置信度' : c.confidence === 'low' ? '低置信度' : '未评估'; meta.append(confidence); item.append(meta);
+          }
+          list.append(item);
+        }
+      }
+      const uncertain = $('uncertaintyList'); uncertain.replaceChildren();
+      const arr = Array.isArray(data.uncertainties) ? data.uncertainties : [];
+      for (const u of arr) {
+        const box = document.createElement('div'); box.className='uncertainty-box'; box.textContent = typeof u === 'string' ? u : JSON.stringify(u); uncertain.append(box);
+      }
+    }
+
+    function fitCamera(resetZoom = true) {
+      if (!bbox) return;
+      const center = bbox.getCenter(new THREE.Vector3());
+      const size = bbox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z, 1);
+      const rect = sceneContainer.getBoundingClientRect();
+      const aspect = Math.max(rect.width, 1) / Math.max(rect.height, 1);
+      cameraBaseHeight = Math.max(size.z, Math.max(size.x, size.y) / Math.max(aspect, .35)) * 1.85;
+      cameraBaseHeight = Math.max(cameraBaseHeight, maxDim * 1.55, 2.5);
+      camera.left = -cameraBaseHeight * aspect / 2;
+      camera.right = cameraBaseHeight * aspect / 2;
+      camera.top = cameraBaseHeight / 2;
+      camera.bottom = -cameraBaseHeight / 2;
+      camera.near = .001;
+      camera.far = maxDim * 100 + 100;
+      camera.updateProjectionMatrix();
+      if (window.__geometryControls) window.__geometryControls.target.copy(center);
+      if (resetZoom) camera.zoom = 1;
+      camera.position.copy(center).add(new THREE.Vector3(maxDim * 2, -maxDim * 2.3, maxDim * 1.8));
+      camera.up.set(0,0,1);
+      camera.lookAt(center);
+      if (window.__geometryControls) window.__geometryControls.update();
+      camera.updateProjectionMatrix();
+    }
+
+    function setView(view, notify = true) {
+      if (!renderer || !bbox) return;
+      currentView = viewNames[view] ? view : 'isometric';
+      const center = bbox.getCenter(new THREE.Vector3());
+      const size = bbox.getSize(new THREE.Vector3());
+      const distance = Math.max(size.x, size.y, size.z, 1) * 3.2;
+      const direction = {
+        front: new THREE.Vector3(0,-1,0),
+        top: new THREE.Vector3(0,0,1),
+        side: new THREE.Vector3(1,0,0),
+        isometric: new THREE.Vector3(1.35,-1.7,1.35)
+      }[currentView];
+      camera.up.set(0,0,1);
+      if (currentView === 'top') camera.up.set(0,1,0);
+      camera.position.copy(center).add(direction.normalize().multiplyScalar(distance));
+      camera.lookAt(center);
+      camera.zoom = 1;
+      camera.updateProjectionMatrix();
+      if (controls) controls.dispose();
+      controls = createOrbitControls();
+      controls.target.copy(center);
+      controls.update();
+      window.__geometryControls = controls;
+      $('currentViewName').textContent = viewNames[currentView];
+      document.querySelectorAll('[data-view]').forEach(btn => btn.classList.toggle('active', btn.dataset.view === currentView));
+      if (notify) showToast(`已切换到${viewNames[currentView]}`);
+    }
+
+    function updateNormalReadouts() {
+      [['normalX','normalXValue'],['normalY','normalYValue'],['normalZ','normalZValue']].forEach(([inputId, outputId]) => {
+        const value = Number($(inputId).value);
+        $(outputId).textContent = (Number.isFinite(value) ? value : 0).toFixed(2);
+      });
+    }
+
+    function updatePresetFromNormal() {
+      const n = sectionNormal.clone().normalize();
+      const close = (a,b) => Math.abs(a-b) < 1e-4;
+      let preset = 'custom';
+      if (close(Math.abs(n.x),0) && close(Math.abs(n.y),0) && close(Math.abs(n.z),1)) preset='xy';
+      else if (close(Math.abs(n.x),0) && close(Math.abs(n.y),1) && close(Math.abs(n.z),0)) preset='xz';
+      else if (close(Math.abs(n.x),1) && close(Math.abs(n.y),0) && close(Math.abs(n.z),0)) preset='yz';
+      $('planePreset').value = preset;
+      $('customNormal').classList.toggle('hidden', preset !== 'custom');
+      $('normalHelp').classList.toggle('hidden', preset !== 'custom');
+      $('normalX').value = Number(sectionNormal.x.toFixed(3));
+      $('normalY').value = Number(sectionNormal.y.toFixed(3));
+      $('normalZ').value = Number(sectionNormal.z.toFixed(3));
+      updateNormalReadouts();
+    }
+
+    function setNormalFromUI() {
+      const preset = $('planePreset').value;
+      if (preset === 'xy') sectionNormal.set(0,0,1);
+      else if (preset === 'xz') sectionNormal.set(0,1,0);
+      else if (preset === 'yz') sectionNormal.set(1,0,0);
+      else {
+        const n = new THREE.Vector3(Number($('normalX').value), Number($('normalY').value), Number($('normalZ').value));
+        if (![n.x,n.y,n.z].every(Number.isFinite) || n.length() < 1e-9) { showToast('法向量不能是零向量，请重新输入'); return false; }
+        sectionNormal.copy(n.normalize());
+      }
+      updatePlaneSliderFromCurrentOffset();
+      applyClipPlane();
+      updateSectionUI();
+      return true;
+    }
+
+    function getProjectionRange() {
+      const vals = [...vertexMap.values()].map(p => p.dot(sectionNormal));
+      if (!vals.length) return {min:-1,max:1};
+      let min = Math.min(...vals), max = Math.max(...vals);
+      const margin = Math.max((max-min)*.08, modelSpan*.025, .05);
+      if (Math.abs(max-min) < 1e-7) { min -= modelSpan*.5; max += modelSpan*.5; }
+      return {min:min-margin,max:max+margin};
+    }
+    function updatePlaneSliderFromCurrentOffset() {
+      const r = getProjectionRange();
+      const pct = (sectionOffset-r.min)/(r.max-r.min);
+      $('sectionSlider').value = String(Math.round(Math.max(0,Math.min(1,pct))*1000));
+      $('sectionMinLabel').textContent = r.min.toFixed(2);
+      $('sectionMaxLabel').textContent = r.max.toFixed(2);
+    }
+    function offsetFromSlider() {
+      const r = getProjectionRange();
+      return r.min + (Number($('sectionSlider').value)/1000)*(r.max-r.min);
+    }
+
+    function calculateSection() {
+      const eps = Math.max(modelSpan * 1e-6, 1e-7);
+      const intersections = [];
+      function addUnique(p) {
+        if (!intersections.some(q => q.distanceToSquared(p) < eps*eps*25)) intersections.push(p.clone());
+      }
+      for (const edge of modelData.edges) {
+        const a = vertexMap.get(edge.from), b = vertexMap.get(edge.to);
+        if (!a || !b) continue;
+        const da = a.dot(sectionNormal)-sectionOffset;
+        const db = b.dot(sectionNormal)-sectionOffset;
+        if (Math.abs(da) <= eps) addUnique(a);
+        if (Math.abs(db) <= eps) addUnique(b);
+        if ((da < -eps && db > eps) || (da > eps && db < -eps)) {
+          const t = da / (da - db);
+          addUnique(a.clone().add(b.clone().sub(a).multiplyScalar(t)));
+        }
+      }
+      if (intersections.length < 2) return intersections;
+      const center = intersections.reduce((s,p)=>s.add(p),new THREE.Vector3()).multiplyScalar(1/intersections.length);
+      const reference = Math.abs(sectionNormal.z) < .9 ? new THREE.Vector3(0,0,1) : new THREE.Vector3(0,1,0);
+      const u = reference.clone().cross(sectionNormal).normalize();
+      const v = sectionNormal.clone().cross(u).normalize();
+      intersections.sort((p,q) => {
+        const pp = p.clone().sub(center), qq=q.clone().sub(center);
+        return Math.atan2(pp.dot(v),pp.dot(u))-Math.atan2(qq.dot(v),qq.dot(u));
+      });
+      return intersections;
+    }
+
+    function applyClipPlane() {
+      if (!modelData || !renderer) return;
+      const clip = new THREE.Plane(sectionNormal.clone(), -sectionOffset);
+      const clipping = sectionActive ? [clip] : [];
+      if (faceMaterial) faceMaterial.clippingPlanes = clipping;
+      if (edgeMaterial) edgeMaterial.clippingPlanes = clipping;
+      const reverseClip = new THREE.Plane(sectionNormal.clone().negate(), sectionOffset);
+      if (hiddenEdgeMaterial) hiddenEdgeMaterial.clippingPlanes = sectionActive ? [reverseClip] : [];
+      hiddenEdgeGroup.visible = sectionActive && $('showEdges').checked;
+      if (auxMaterial) auxMaterial.clippingPlanes = clipping;
+      vertexMeshes.forEach(m => { if (m.material) m.material.clippingPlanes = clipping; });
+      labelSprites.forEach(sprite => {
+        const p = vertexMap.get(sprite.userData.vertexId);
+        sprite.visible = $('showVertices').checked && (!sectionActive || !p || p.dot(sectionNormal)-sectionOffset >= -modelSpan*1e-6);
+      });
+      [faceMaterial,edgeMaterial,hiddenEdgeMaterial,auxMaterial].forEach(m => { if (m) m.needsUpdate = true; });
+      updateDynamicPointVisibility();
+      clearGroup(sectionGroup);
+      clearGroup(planeGroup);
+      if (sectionActive) {
+        const points = calculateSection();
+        const pArr = points;
+        if (pArr.length >= 3) {
+          const center = pArr.reduce((s,p)=>s.add(p),new THREE.Vector3()).multiplyScalar(1/pArr.length);
+          const fillPositions = [];
+          for (let i=0;i<pArr.length;i++) fillPositions.push(...center.toArray(), ...pArr[i].toArray(), ...pArr[(i+1)%pArr.length].toArray());
+          const g = new THREE.BufferGeometry();
+          g.setAttribute('position', new THREE.Float32BufferAttribute(fillPositions,3));
+          g.computeVertexNormals();
+          const fill = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: '#f4ad35', transparent: true, opacity: .66, side: THREE.DoubleSide, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+          fill.renderOrder = 5;
+          sectionGroup.add(fill);
+          const boundaryPoints = [...pArr, pArr[0]];
+          const borderGeo = new THREE.BufferGeometry().setFromPoints(boundaryPoints);
+          const borderMat = new THREE.LineBasicMaterial({ color: '#c47a12', linewidth: 2, depthTest: false });
+          const borderLine = new THREE.Line(borderGeo,borderMat);
+          borderLine.renderOrder = 6;
+          sectionGroup.add(borderLine);
+          $('sectionStatus').textContent = `当前截面：${pArr.length} 个顶点。切除侧棱线以虚线显示；拖动滑块查看截面变化。`;
+          $('sectionReadout').textContent = `${pArr.length} 边形截面`;
+          $('sectionReadout').classList.add('active');
+        } else if (pArr.length === 2) {
+          const g = new THREE.BufferGeometry().setFromPoints(pArr);
+          sectionGroup.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:'#c47a12',linewidth:2,depthTest:false})));
+          $('sectionStatus').textContent = '切割平面与实体相切或经过一条棱，当前没有形成有面积的截面。';
+          $('sectionReadout').textContent = '截面退化为线段'; $('sectionReadout').classList.add('active');
+        } else {
+          $('sectionStatus').textContent = '当前平面没有穿过实体。请移动滑块或更换平面方向。';
+          $('sectionReadout').textContent = '当前未相交'; $('sectionReadout').classList.add('active');
+        }
+        // A translucent plane gives spatial context; the exact polygon is calculated separately.
+        const size = modelSpan * 2.8;
+        const planeGeo = new THREE.PlaneGeometry(size,size);
+        const planeMat = new THREE.MeshBasicMaterial({ color:'#f7c36d', transparent:true, opacity:.13, side:THREE.DoubleSide, depthWrite:false, depthTest:true });
+        const planeMesh = new THREE.Mesh(planeGeo,planeMat);
+        planeMesh.position.copy(sectionNormal.clone().multiplyScalar(sectionOffset));
+        planeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),sectionNormal);
+        planeMesh.renderOrder = 3;
+        planeGroup.add(planeMesh);
+      } else {
+        $('sectionStatus').textContent = '切割已关闭，完整显示几何体。';
+        $('sectionReadout').classList.remove('active');
+      }
+    }
+
+    function updateSectionUI() {
+      $('sectionEnabled').checked = sectionActive;
+      $('sectionSlider').disabled = !sectionActive;
+      $('planePreset').disabled = !sectionActive;
+      ['normalX','normalY','normalZ'].forEach(id => $(id).disabled = !sectionActive);
+      $('sectionOffsetValue').textContent = `d = ${sectionOffset.toFixed(2)}`;
+      applyClipPlane();
+    }
+    function resizeRenderer() {
+      if (!renderer) return;
+      const rect = sceneContainer.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) return;
+      renderer.setSize(rect.width, rect.height, false);
+      const aspect = rect.width / rect.height;
+      camera.left = -cameraBaseHeight * aspect / 2;
+      camera.right = cameraBaseHeight * aspect / 2;
+      camera.top = cameraBaseHeight / 2;
+      camera.bottom = -cameraBaseHeight / 2;
+      camera.updateProjectionMatrix();
+      renderer.render(scene,camera);
+    }
+
+    function loadFromEditor({fromHash=false} = {}) {
+      if (renderFailed) return;
+      let data;
+      try { data = JSON.parse(editor.value); }
+      catch (e) { setStatus(`JSON 解析失败：${e.message}`, 'error'); showToast('JSON 格式不正确，请检查逗号、引号和括号'); return; }
+      const result = validateData(data);
+      if (result.errors.length) { setStatus(result.errors.slice(0,3).join(' '), 'error'); showToast('数据校验未通过，请根据提示修改'); return; }
+      try {
+        if (data.defaultSectionPlane) {
+          const p = normalizePlane(data.defaultSectionPlane.normal,data.defaultSectionPlane.offset);
+          sectionNormal.copy(p.normal); sectionOffset=p.offset;
+        } else { sectionNormal.set(0,0,1); sectionOffset=0; }
+        sectionActive = $('sectionEnabled').checked;
+        buildModel(data, fromHash);
+        editor.value = JSON.stringify(data,null,2);
+        if (result.warnings.length) setStatus(`模型已生成，但有提醒：${result.warnings.slice(0,2).join(' ')}`, 'warning');
+        else setStatus(`校验通过，已生成「${data.title || '未命名模型'}」。`, 'success');
+      } catch (e) {
+        console.error(e);
+        setStatus(`模型生成失败：${e.message || '未知错误'}`, 'error');
+      }
+    }
+
+    $('renderBtn').addEventListener('click', () => loadFromEditor());
+    $('formatBtn').addEventListener('click', () => {
+      try { editor.value = JSON.stringify(JSON.parse(editor.value), null, 2); setStatus('JSON 格式已整理。点击“校验并绘图”更新三维场景。','success'); }
+      catch (e) { setStatus(`无法格式整理：${e.message}`, 'error'); }
+    });
+    $('importBtn').addEventListener('click', () => $('fileInput').click());
+    $('fileInput').addEventListener('change', async (event) => {
+      const file = event.target.files?.[0]; if (!file) return;
+      try { editor.value = await file.text(); loadFromEditor(); showToast(`已读取 ${file.name}`); }
+      catch(e) { setStatus(`文件读取失败：${e.message}`, 'error'); }
+      event.target.value = '';
+    });
+    $('downloadBtn').addEventListener('click', () => {
+      try {
+        const data = JSON.parse(editor.value);
+        const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json;charset=utf-8'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${(data.title || 'geometry-model').replace(/[\\/:*?"<>|\s]+/g,'_')}.json`;
+        document.body.append(a); a.click(); a.remove(); URL.revokeObjectURL(a.href); showToast('JSON 文件已导出');
+      } catch(e) { setStatus(`当前编辑内容不是有效 JSON：${e.message}`,'error'); }
+    });
+    $('shareBtn').addEventListener('click', async () => {
+      try {
+        const data = JSON.parse(editor.value);
+        const json = JSON.stringify(data);
+        const bytes = new TextEncoder().encode(json);
+        let binary = ''; for (const b of bytes) binary += String.fromCharCode(b);
+        const encoded = btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+        const url = `${location.origin}${location.pathname}#data=${encoded}`;
+        try { await navigator.clipboard.writeText(url); }
+        catch(e) {
+          const temp = document.createElement('textarea'); temp.value=url; temp.style.position='fixed'; temp.style.opacity='0'; document.body.append(temp); temp.select();
+          const ok = document.execCommand('copy'); temp.remove(); if (!ok) throw e;
+        }
+        if (url.length > 7000) showToast('链接已复制，但数据较长；正式分享建议改为服务端保存场景。');
+        else showToast('分享链接已复制。部署网页后，其他人打开链接即可载入模型。');
+      } catch(e) { setStatus(`无法生成分享链接：${e.message}`,'error'); }
+    });
+
+    document.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+    $('resetCameraBtn').addEventListener('click', () => setView('isometric'));
+    $('fullscreenBtn').addEventListener('click', async () => {
+      try {
+        if (!document.fullscreenElement) await $('sceneContainer').requestFullscreen();
+        else await document.exitFullscreen();
+        setTimeout(resizeRenderer,100);
+      } catch(e) { showToast('当前浏览器未允许全屏'); }
+    });
+    $('showVertices').addEventListener('change', () => {
+      vertexGroup.visible = $('showVertices').checked;
+      labelGroup.visible = $('showVertices').checked;
+      dynamicPointGroup.visible = $('showVertices').checked;
+      updateDynamicPointVisibility();
+      labelSprites.forEach(sprite => {
+        const p = vertexMap.get(sprite.userData.vertexId);
+        sprite.visible = $('showVertices').checked && (!sectionActive || !p || p.dot(sectionNormal)-sectionOffset >= -modelSpan*1e-6);
+      });
+    });
+    $('showFaces').addEventListener('change', () => faceGroup.visible = $('showFaces').checked);
+    $('showEdges').addEventListener('change', () => {
+      edgeGroup.visible = $('showEdges').checked;
+      hiddenEdgeGroup.visible = sectionActive && $('showEdges').checked;
+    });
+    $('showAux').addEventListener('change', () => auxGroup.visible = $('showAux').checked);
+    $('sectionEnabled').addEventListener('change', () => {
+      sectionActive = $('sectionEnabled').checked;
+      updateSectionUI();
+    });
+    $('planePreset').addEventListener('change', () => {
+      const preset = $('planePreset').value;
+      $('customNormal').classList.toggle('hidden', preset !== 'custom');
+      $('normalHelp').classList.toggle('hidden', preset !== 'custom');
+      if (preset !== 'custom') {
+        if (!setNormalFromUI()) return;
+        updatePresetFromNormal();
+      } else {
+        updateNormalReadouts();
+        if (!setNormalFromUI()) return;
+      }
+      sectionOffset = offsetFromSlider();
+      updateSectionUI();
+    });
+    ['normalX','normalY','normalZ'].forEach(id => $(id).addEventListener('input', () => {
+      updateNormalReadouts();
+      if (!setNormalFromUI()) return;
+      sectionOffset = offsetFromSlider();
+      updateSectionUI();
+    }));
+    $('sectionSlider').addEventListener('input', () => {
+      sectionOffset = offsetFromSlider();
+      $('sectionOffsetValue').textContent = `d = ${sectionOffset.toFixed(2)}`;
+      applyClipPlane();
+    });
+
+    sceneCanvas.addEventListener('pointerdown', beginDynamicPointDrag, true);
+    window.addEventListener('pointermove', moveDynamicPointDrag, { passive: false });
+    window.addEventListener('pointerup', endDynamicPointDrag);
+    window.addEventListener('pointercancel', endDynamicPointDrag);
+    sceneCanvas.addEventListener('pointerleave', () => { if (!activeDynamicDrag) sceneCanvas.style.cursor = ''; });
+
+    function loadHashData() {
+      const hash = location.hash || '';
+      if (!hash.startsWith('#data=')) return false;
+      try {
+        let encoded = hash.slice(6).replace(/-/g,'+').replace(/_/g,'/');
+        encoded += '='.repeat((4 - encoded.length % 4) % 4);
+        const binary = atob(encoded);
+        const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+        const decoded = new TextDecoder().decode(bytes);
+        const data = JSON.parse(decoded);
+        editor.value = JSON.stringify(data,null,2);
+        loadFromEditor({fromHash:true});
+        return true;
+      } catch(e) { setStatus('分享链接中的模型数据无法解析，已加载示例模型。','warning'); return false; }
+    }
+
+    editor.value = JSON.stringify(SAMPLE,null,2);
+    if (!renderFailed) loadFromEditor();
+    if (location.hash.startsWith('#data=')) loadHashData();
+  </script>
+</body>
+</html>
